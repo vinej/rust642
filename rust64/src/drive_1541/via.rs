@@ -336,13 +336,16 @@ impl Via {
     fn iec_pb_pin(&self) -> u8 {
         let Some(b) = self.iec.as_ref() else { return 0xFF; };
         let b = b.borrow();
-        let mut v = 0xFFu8;
-        if b.data_low() { v &= !(1 << IEC_PB_DATA_IN); }
-        if b.clk_low()  { v &= !(1 << IEC_PB_CLK_IN); }
-        if b.atn_low()  { v &= !(1 << IEC_PB_ATN_IN); }
-        // device 8 — both jumper bits read 0
-        v &= !(1 << 5);
-        v &= !(1 << 6);
+        // 1541 has 7406 inverters on IEC inputs, same as C64. Convention at
+        // the VIA pin is "1 = bus line asserted (low), 0 = released (high)".
+        // Confirmed by ROM code at $E87B (BPL on $1800 branches when ATN
+        // released, i.e. bit 7 = 0).
+        let mut v = 0u8;
+        if b.data_low() { v |= 1 << IEC_PB_DATA_IN; }
+        if b.clk_low()  { v |= 1 << IEC_PB_CLK_IN; }
+        if b.atn_low()  { v |= 1 << IEC_PB_ATN_IN; }
+        // Device-address jumpers (bits 5,6): intact = bit reads 0, cut = 1.
+        // Default 1541 = device 8 = both jumpers intact = bits 5,6 read 0.
         v
     }
 

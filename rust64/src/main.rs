@@ -25,12 +25,15 @@ fn main() {
     let mut auto_run     = false;
     let mut truedrive    = false;
     let mut tracedrive   = false;
-    let mut window_scale = Scale::X1;
+    let mut window_scale = Scale::X2;
 
     // process cmd line params
     for i in 1..args.len() {
         if args[i] == "debugger" {
             debugger_on = true;
+        }
+        else if args[i] == "x1" {
+            window_scale = Scale::X1;
         }
         else if args[i] == "x2" {
             window_scale = Scale::X2;

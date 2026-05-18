@@ -138,7 +138,10 @@ impl C64 {
             let iec = drive_1541::IecBus::new_shared();
             c64.cia2.borrow_mut().set_iec(iec.clone());
             c64.drive.set_iec(iec.clone());
-            if tracedrive { c64.iec_for_trace = Some(iec); }
+            if tracedrive {
+                c64.iec_for_trace = Some(iec);
+                c64.drive.set_trace(true);
+            }
             if let Some(img) = &c64.disk_image {
                 c64.drive.mount_d64(img.clone());
             } else {

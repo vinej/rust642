@@ -53,8 +53,13 @@ impl IecBus {
     pub fn atn_low(&self) -> bool { self.c64_atn }
     pub fn clk_low(&self) -> bool { self.c64_clk || self.drive_clk }
     pub fn data_low(&self) -> bool {
-        // Auto-DATA: while ATN low AND drive's ATNA latch is 0, the drive
-        // hardware pulls DATA low without CPU intervention.
+        // Auto-DATA: per the 1541 hardware (NAND of ATN_LOW and inverted
+        // ATNA), DATA is automatically pulled low whenever ATN is asserted
+        // AND the drive has NOT yet set its ATNA latch. That gives the C64
+        // an immediate "device present" signal *before* the drive's CPU has
+        // had a chance to service the ATN interrupt. Once the drive sets
+        // ATNA=1 to acknowledge, auto-DATA releases and the drive must
+        // explicitly hold DATA via PB1 if it wants to keep the line low.
         let auto_data = self.atn_low() && !self.drive_atna;
         self.c64_data || self.drive_data || auto_data
     }

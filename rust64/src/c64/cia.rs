@@ -688,13 +688,17 @@ impl CIA {
                 //   output bits (DDR=1) come from the PRA latch
                 //   input  bits (DDR=0) come from the pin
                 // For IEC: the KERNAL sets DDRA=$3F so bits 0-5 are outputs
-                // and bits 6,7 are inputs. Pin convention used here is
-                // "1 = line released (high), 0 = line low (asserted)".
-                let mut pin = 0xFFu8; // unused input bits default high
+                // and bits 6,7 are inputs. The C64 has 7406 inverters on the
+                // serial-bus pins, so the convention seen at the CIA is
+                // "1 = line asserted (low), 0 = line released (high)" — i.e.
+                // the same polarity as the OUT bits (write 1 = assert).
+                // Confirmed by KERNAL code at $ED44-47: read DATA IN with
+                // bus idle and BCS branches to error iff DATA is "asserted".
+                let mut pin = 0u8;  // bits default to "released"
                 if let Some(b) = &self.iec {
                     let b = b.borrow();
-                    if b.clk_low()  { pin &= !0x40; }
-                    if b.data_low() { pin &= !0x80; }
+                    if b.clk_low()  { pin |= 0x40; }
+                    if b.data_low() { pin |= 0x80; }
                 }
                 (self.pra & self.ddra) | (pin & !self.ddra)
             },
@@ -719,6 +723,8 @@ impl CIA {
                     b.c64_atn  = (driven & 0x08) != 0;
                     b.c64_clk  = (driven & 0x10) != 0;
                     b.c64_data = (driven & 0x20) != 0;
+                    println!("[cia2] STA $DD00,#${:02X}  ddra=${:02X}  -> c64{{atn:{} clk:{} dat:{}}}",
+                        value, self.ddra, b.c64_atn as u8, b.c64_clk as u8, b.c64_data as u8);
                 }
             },
             0xDD01 => {
@@ -736,6 +742,8 @@ impl CIA {
                     b.c64_atn  = (driven & 0x08) != 0;
                     b.c64_clk  = (driven & 0x10) != 0;
                     b.c64_data = (driven & 0x20) != 0;
+                    println!("[cia2] STA $DD02,#${:02X}  pra=${:02X}  -> c64{{atn:{} clk:{} dat:{}}}",
+                        value, self.pra, b.c64_atn as u8, b.c64_clk as u8, b.c64_data as u8);
                 }
             },
             0xDD03 => { self.ddrb = value; as_ref!(self.mem_ref).get_ram_bank(memory::MemType::Io).write(addr, value); },
