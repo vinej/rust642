@@ -60,10 +60,16 @@ pub struct C64 {
     // stays out of the way (so the C64 talks to the drive "for real").
     truedrive: bool,
     drive: drive_1541::Drive1541,
+
+    // tracedrive: log IEC bus transitions + a periodic drive PC.
+    tracedrive: bool,
+    iec_for_trace: Option<drive_1541::IecBusShared>,
+    prev_trace_state: u8,
+    trace_pc_counter: u32,
 }
 
 impl C64 {
-    pub fn new(window_scale: Scale, debugger_on: bool, prg_to_load: &str, crt_to_load: &str, d64_to_mount: &str, auto_run: bool, truedrive: bool) -> C64 {
+    pub fn new(window_scale: Scale, debugger_on: bool, prg_to_load: &str, crt_to_load: &str, d64_to_mount: &str, auto_run: bool, truedrive: bool, tracedrive: bool) -> C64 {
         let memory = memory::Memory::new_shared();
         let vic    = vic::VIC::new_shared();
         let cia1   = cia::CIA::new_shared(true);
@@ -119,6 +125,10 @@ impl C64 {
             } else {
                 drive_1541::Drive1541::disabled()
             },
+            tracedrive,
+            iec_for_trace: None,
+            prev_trace_state: 0,
+            trace_pc_counter: 0,
         };
 
         // If the drive is actually running, hand both ends a shared IEC bus
@@ -127,7 +137,8 @@ impl C64 {
         if truedrive && c64.drive.enabled {
             let iec = drive_1541::IecBus::new_shared();
             c64.cia2.borrow_mut().set_iec(iec.clone());
-            c64.drive.set_iec(iec);
+            c64.drive.set_iec(iec.clone());
+            if tracedrive { c64.iec_for_trace = Some(iec); }
             if let Some(img) = &c64.disk_image {
                 c64.drive.mount_d64(img.clone());
             } else {
@@ -236,7 +247,10 @@ impl C64 {
             // Tick the 1541 drive once per C64 cycle. Within 1.5% of real
             // timing (1.000 MHz drive vs ~985 kHz C64 PAL), close enough for
             // the IEC handshake. No-op if the drive ROM didn't load.
-            if self.truedrive { self.drive.step(); }
+            if self.truedrive {
+                self.drive.step();
+                if self.tracedrive { self.trace_step(); }
+            }
 
             // update the debugger window if it exists
             match self.debugger {
@@ -470,5 +484,42 @@ impl C64 {
         let hi = c.pop_byte();
         let ret = (((hi as u16) << 8) | (lo as u16)).wrapping_add(1);
         c.pc = ret;
+    }
+
+    // tracedrive: log IEC bus edges (ATN/CLK/DATA + ATNA) and print the
+    // drive CPU's PC every ~50000 cycles. Helps diagnose handshake hangs.
+    fn trace_step(&mut self) {
+        let Some(b) = self.iec_for_trace.as_ref() else { return; };
+        let state: u8 = {
+            let b = b.borrow();
+            let mut s = 0u8;
+            if b.atn_low()  { s |= 0x01; }
+            if b.clk_low()  { s |= 0x02; }
+            if b.data_low() { s |= 0x04; }
+            if b.drive_atna { s |= 0x08; }
+            if b.c64_atn    { s |= 0x10; }
+            if b.c64_clk    { s |= 0x20; }
+            if b.c64_data   { s |= 0x40; }
+            if b.drive_clk  { s |= 0x80; }
+            s
+        };
+        if state != self.prev_trace_state {
+            let b = b.borrow();
+            println!(
+                "[iec] ATN={} CLK={} DATA={}  c64={{atn:{} clk:{} dat:{}}}  drv={{clk:{} dat:{} atna:{}}}  pc=${:04X}",
+                if b.atn_low()  { "L" } else { "H" },
+                if b.clk_low()  { "L" } else { "H" },
+                if b.data_low() { "L" } else { "H" },
+                b.c64_atn  as u8, b.c64_clk  as u8, b.c64_data as u8,
+                b.drive_clk as u8, b.drive_data as u8, b.drive_atna as u8,
+                self.drive.pc(),
+            );
+            self.prev_trace_state = state;
+        }
+        self.trace_pc_counter = self.trace_pc_counter.wrapping_add(1);
+        if self.trace_pc_counter >= 50_000 {
+            self.trace_pc_counter = 0;
+            println!("[drv] pc=${:04X}", self.drive.pc());
+        }
     }
 }

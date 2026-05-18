@@ -99,6 +99,11 @@ pub struct Via {
     step_phase: u8,
 
     pub irq_pending: bool,
+
+    // Diagnostic: if true, print every ORB write with PC stashed via
+    // `set_trace_pc()` so we can correlate bus changes with code addresses.
+    pub trace: bool,
+    pub trace_pc: u16,
 }
 
 impl Via {
@@ -115,11 +120,15 @@ impl Via {
             disk: None,
             step_phase: 0,
             irq_pending: false,
+            trace: false,
+            trace_pc: 0,
         }
     }
 
     pub fn set_iec(&mut self, iec: IecBusShared) { self.iec = Some(iec); }
     pub fn set_disk(&mut self, disk: DiskShared) { self.disk = Some(disk); }
+    pub fn set_trace(&mut self, on: bool) { self.trace = on; }
+    pub fn set_trace_pc(&mut self, pc: u16) { self.trace_pc = pc; }
 
     pub fn reset(&mut self) {
         for r in self.regs.iter_mut() { *r = 0; }
@@ -182,6 +191,16 @@ impl Via {
             R_ORB => {
                 self.regs[R_ORB] = val;
                 self.on_port_b_change();
+                if self.trace && matches!(self.kind, ViaKind::Iec) {
+                    let (dat, clk, atna) = if let Some(b) = &self.iec {
+                        let b = b.borrow();
+                        (b.drive_data as u8, b.drive_clk as u8, b.drive_atna as u8)
+                    } else { (0, 0, 0) };
+                    println!(
+                        "[via1] STA $1800,#${:02X}  pc=${:04X}  -> dat={} clk={} atna={}",
+                        val, self.trace_pc, dat, clk, atna,
+                    );
+                }
             }
             R_ORA => {
                 self.regs[R_IFR] &= !(IFR_CA1 | IFR_CA2);

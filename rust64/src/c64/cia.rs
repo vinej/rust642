@@ -684,13 +684,19 @@ impl CIA {
     fn read_cia2_register(&mut self, addr: u16) -> u8 {
         match addr {
             0xDD00 => {
-                // Bits 0-5: from PRA (with DDR treated as inputs for bits not driven)
-                // Bits 4 (SRQ), 6 (CLK IN), 7 (DATA IN): from the IEC bus.
-                let iec_in = match &self.iec {
-                    Some(b) => b.borrow().cia2_input_bits(),
-                    None => 0xD0, // SRQ + CLK + DATA all released (default for "no drive")
-                };
-                (self.pra | !self.ddra) & 0x0F | iec_in
+                // Standard CIA PA read:
+                //   output bits (DDR=1) come from the PRA latch
+                //   input  bits (DDR=0) come from the pin
+                // For IEC: the KERNAL sets DDRA=$3F so bits 0-5 are outputs
+                // and bits 6,7 are inputs. Pin convention used here is
+                // "1 = line released (high), 0 = line low (asserted)".
+                let mut pin = 0xFFu8; // unused input bits default high
+                if let Some(b) = &self.iec {
+                    let b = b.borrow();
+                    if b.clk_low()  { pin &= !0x40; }
+                    if b.data_low() { pin &= !0x80; }
+                }
+                (self.pra & self.ddra) | (pin & !self.ddra)
             },
             0xDD01 => self.prb | !self.ddrb,
             0xDD10..=0xDDFF => self.read_cia2_register(0xDD00 + (addr % 0x0010)),

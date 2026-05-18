@@ -58,13 +58,4 @@ impl IecBus {
         let auto_data = self.atn_low() && !self.drive_atna;
         self.c64_data || self.drive_data || auto_data
     }
-
-    /// 6-bit IEC view from CIA2's perspective at $DD00, bits 4,6,7 (SRQ, CLK, DATA).
-    /// Returns the bits with the C64's convention: 1 = released.
-    pub fn cia2_input_bits(&self) -> u8 {
-        let mut v: u8 = 0x10; // SRQ IN — we don't model SRQ, always released
-        if !self.clk_low()  { v |= 0x40; }
-        if !self.data_low() { v |= 0x80; }
-        v
-    }
 }

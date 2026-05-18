@@ -59,6 +59,12 @@ impl Drive1541 {
         self.bus.via1.set_iec(iec);
     }
 
+    /// Enable per-write tracing on VIA1. Combined with the IEC-bus edge log
+    /// in C64::trace_step this gives a full PC-by-PC view of the handshake.
+    pub fn set_trace(&mut self, on: bool) {
+        self.bus.via1.set_trace(on);
+    }
+
     /// Mount a D64 image so the drive's read head sees real GCR-encoded bytes
     /// as the disk rotates. Without this the drive is "no disk inserted" —
     /// motor can spin but no data ever shows up on the head.
@@ -129,6 +135,11 @@ impl Drive1541 {
         self.bus.disk.borrow_mut().rotate(1);
         self.bus.via1.tick(1);
         self.bus.via2.tick(1);
+
+        // Keep the PC the VIA prints in trace mode current with the upcoming
+        // cycle. CPU.pc here is the PC of the *next* instruction to fetch.
+        let pc = self.cpu.get_program_counter();
+        self.bus.via1.set_trace_pc(pc);
 
         if self.bus.irq_asserted() {
             self.cpu.interrupt_request();
