@@ -1,6 +1,7 @@
 extern crate minifb;
 extern crate byteorder;
 extern crate num;
+extern crate emulator_6502;
 
 #[macro_use]
 extern crate enum_primitive;
@@ -9,6 +10,7 @@ extern crate enum_primitive;
 mod utils;
 mod c64;
 mod debugger;
+mod drive_1541;
 
 use minifb::*;
 use std::env;
@@ -21,6 +23,7 @@ fn main() {
     let mut d64_to_mount = String::new();
     let mut debugger_on  = false;
     let mut auto_run     = false;
+    let mut truedrive    = false;
     let mut window_scale = Scale::X1;
 
     // process cmd line params
@@ -37,6 +40,9 @@ fn main() {
         else if args[i] == "run" {
             auto_run = true;
         }
+        else if args[i] == "truedrive" {
+            truedrive = true;
+        }
         else if args[i].ends_with(".prg") {
             prg_to_load = args[i].clone();
         }
@@ -48,7 +54,7 @@ fn main() {
         }
     }
 
-    let mut c64 = c64::C64::new(window_scale, debugger_on, &prg_to_load, &crt_to_load, &d64_to_mount, auto_run);
+    let mut c64 = c64::C64::new(window_scale, debugger_on, &prg_to_load, &crt_to_load, &d64_to_mount, auto_run, truedrive);
     c64.reset();
 
     // main update loop

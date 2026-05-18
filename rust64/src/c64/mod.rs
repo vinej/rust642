@@ -16,6 +16,7 @@ mod sid_tables;
 mod vic_tables;
 
 use debugger;
+use drive_1541;
 use minifb::*;
 use utils;
 
@@ -53,10 +54,16 @@ pub struct C64 {
     // text pointers ($2D/$2E/$2F/$30/$31/$32) and stuff "RUN<CR>" into the
     // C64 keyboard buffer so BASIC executes the program without user input.
     auto_run: bool,
+
+    // Level-3 1541 emulation. When `truedrive` is true and the ROM is found,
+    // the drive's 6502 runs alongside the C64's CPU and the KERNAL LOAD trap
+    // stays out of the way (so the C64 talks to the drive "for real").
+    truedrive: bool,
+    drive: drive_1541::Drive1541,
 }
 
 impl C64 {
-    pub fn new(window_scale: Scale, debugger_on: bool, prg_to_load: &str, crt_to_load: &str, d64_to_mount: &str, auto_run: bool) -> C64 {
+    pub fn new(window_scale: Scale, debugger_on: bool, prg_to_load: &str, crt_to_load: &str, d64_to_mount: &str, auto_run: bool, truedrive: bool) -> C64 {
         let memory = memory::Memory::new_shared();
         let vic    = vic::VIC::new_shared();
         let cia1   = cia::CIA::new_shared(true);
@@ -104,7 +111,31 @@ impl C64 {
             disk_image,
             load_trap_armed: true,
             auto_run,
+            truedrive,
+            // Only try to load the 1541 ROM when the user opted into truedrive;
+            // otherwise it would spam a "ROM not found" warning every boot.
+            drive: if truedrive {
+                drive_1541::Drive1541::new("rom/1541.rom")
+            } else {
+                drive_1541::Drive1541::disabled()
+            },
         };
+
+        // If the drive is actually running, hand both ends a shared IEC bus
+        // and (if a D64 is mounted) give the drive its own copy of the disk
+        // image so the read head sees real bytes.
+        if truedrive && c64.drive.enabled {
+            let iec = drive_1541::IecBus::new_shared();
+            c64.cia2.borrow_mut().set_iec(iec.clone());
+            c64.drive.set_iec(iec);
+            if let Some(img) = &c64.disk_image {
+                c64.drive.mount_d64(img.clone());
+            } else {
+                println!("truedrive: no D64 mounted; drive head will see no data.");
+            }
+        } else if truedrive {
+            println!("truedrive: ROM missing or invalid; falling back to KERNAL LOAD trap.");
+        }
 
         c64.main_window.set_position(75, 20);
 
@@ -133,6 +164,7 @@ impl C64 {
         self.cia1.borrow_mut().reset();
         self.cia2.borrow_mut().reset();
         self.sid.borrow_mut().reset();
+        if self.truedrive { self.drive.reset(); }
     }
 
 
@@ -169,7 +201,11 @@ impl C64 {
         // device 8 and we have a D64 mounted, satisfy the load ourselves and RTS.
         // We re-arm the trap as soon as PC moves away to avoid firing twice during
         // the multi-cycle instruction at $F4A5.
-        {
+        //
+        // Suppressed when --truedrive is on AND the drive ROM actually loaded;
+        // in that mode the C64 talks to the real 1541 emulation instead.
+        let use_load_trap = !(self.truedrive && self.drive.enabled);
+        if use_load_trap {
             let (pc, at_fetch) = {
                 let c = self.cpu.borrow();
                 (c.pc, matches!(c.state, cpu::CPUState::FetchOp))
@@ -196,6 +232,11 @@ impl C64 {
             self.cia2.borrow_mut().update();
 
             self.cpu.borrow_mut().update(self.cycle_count);
+
+            // Tick the 1541 drive once per C64 cycle. Within 1.5% of real
+            // timing (1.000 MHz drive vs ~985 kHz C64 PAL), close enough for
+            // the IEC handshake. No-op if the drive ROM didn't load.
+            if self.truedrive { self.drive.step(); }
 
             // update the debugger window if it exists
             match self.debugger {

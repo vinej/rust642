@@ -55,6 +55,7 @@ impl DirEntry {
     }
 }
 
+#[derive(Clone)]
 pub struct D64 {
     data: Vec<u8>,
 }

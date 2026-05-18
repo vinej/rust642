@@ -2,6 +2,7 @@
 use c64::cpu;
 use c64::memory;
 use c64::vic;
+use drive_1541::iec::IecBusShared;
 use std::rc::Rc;
 use std::cell::RefCell;
 
@@ -232,8 +233,8 @@ pub struct CIA {
     pub joystick_2: u8,
     prev_lp: u8,
 
-    // CIA2 only
-    iec_lines: u8,
+    // CIA2 only — shared IEC bus state (None means no truedrive wiring).
+    iec: Option<IecBusShared>,
 }
 
 impl CIA {
@@ -273,8 +274,14 @@ impl CIA {
             prev_lp: 0x10,
 
             // CIA2 only
-            iec_lines: 0xD0
+            iec: None,
         }))
+    }
+
+    /// Hook CIA2 into the shared IEC bus. CIA1 should never get an IEC ref.
+    pub fn set_iec(&mut self, iec: IecBusShared) {
+        debug_assert!(!self.is_cia1, "IEC is only on CIA2");
+        self.iec = Some(iec);
     }
 
 
@@ -316,8 +323,15 @@ impl CIA {
         self.joystick_2 = 0xFF;
         self.prev_lp = 0x10;
 
-        // CIA2 only
-        self.iec_lines = 0xD0;
+        // CIA2 only — clear our pull state on the shared bus on reset so we
+        // don't leave a phantom line low across resets. The drive side does
+        // the same when it resets.
+        if let Some(b) = &self.iec {
+            let mut b = b.borrow_mut();
+            b.c64_atn = false;
+            b.c64_clk = false;
+            b.c64_data = false;
+        }
     }
 
 
@@ -670,8 +684,13 @@ impl CIA {
     fn read_cia2_register(&mut self, addr: u16) -> u8 {
         match addr {
             0xDD00 => {
-                // TODO
-                (self.pra | !self.ddra) & 0x3f | self.iec_lines
+                // Bits 0-5: from PRA (with DDR treated as inputs for bits not driven)
+                // Bits 4 (SRQ), 6 (CLK IN), 7 (DATA IN): from the IEC bus.
+                let iec_in = match &self.iec {
+                    Some(b) => b.borrow().cia2_input_bits(),
+                    None => 0xD0, // SRQ + CLK + DATA all released (default for "no drive")
+                };
+                (self.pra | !self.ddra) & 0x0F | iec_in
             },
             0xDD01 => self.prb | !self.ddrb,
             0xDD10..=0xDDFF => self.read_cia2_register(0xDD00 + (addr % 0x0010)),
@@ -683,10 +702,18 @@ impl CIA {
     fn write_cia2_register(&mut self, addr: u16, value: u8, on_cia_write: &mut cpu::Callback) {
         match addr {
             0xDD00 => {
-                // TODO
                 self.pra = value;
                 as_mut!(self.vic_ref).on_va_change(!(self.pra | !self.ddra) & 3);
                 as_ref!(self.mem_ref).get_ram_bank(memory::MemType::Io).write(addr, value);
+                // Propagate IEC output bits (ATN bit 3, CLK bit 4, DATA bit 5).
+                // CIA convention: writing 1 = "pull line low".
+                if let Some(b) = &self.iec {
+                    let mut b = b.borrow_mut();
+                    let driven = self.pra & self.ddra; // only DDR=output bits drive the line
+                    b.c64_atn  = (driven & 0x08) != 0;
+                    b.c64_clk  = (driven & 0x10) != 0;
+                    b.c64_data = (driven & 0x20) != 0;
+                }
             },
             0xDD01 => {
                 self.prb = value;
@@ -696,6 +723,14 @@ impl CIA {
                 self.ddra = value;
                 as_mut!(self.vic_ref).on_va_change(!(self.pra | !self.ddra) & 3);
                 as_ref!(self.mem_ref).get_ram_bank(memory::MemType::Io).write(addr, value);
+                // DDRA changes which bits drive the bus; re-publish.
+                if let Some(b) = &self.iec {
+                    let mut b = b.borrow_mut();
+                    let driven = self.pra & self.ddra;
+                    b.c64_atn  = (driven & 0x08) != 0;
+                    b.c64_clk  = (driven & 0x10) != 0;
+                    b.c64_data = (driven & 0x20) != 0;
+                }
             },
             0xDD03 => { self.ddrb = value; as_ref!(self.mem_ref).get_ram_bank(memory::MemType::Io).write(addr, value); },
             0xDD10..=0xDDFF => self.write_cia2_register(0xDD00 + (addr % 0x0010), value, on_cia_write),
