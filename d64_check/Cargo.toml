@@ -1,0 +1,12 @@
+[package]
+name = "d64_check"
+version = "0.0.1"
+edition = "2018"
+
+[[bin]]
+name = "d64_check"
+path = "src/main.rs"
+
+[[bin]]
+name = "make_d64"
+path = "src/make_d64.rs"
