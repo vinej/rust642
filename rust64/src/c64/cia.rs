@@ -687,18 +687,17 @@ impl CIA {
                 // Standard CIA PA read:
                 //   output bits (DDR=1) come from the PRA latch
                 //   input  bits (DDR=0) come from the pin
-                // For IEC: the KERNAL sets DDRA=$3F so bits 0-5 are outputs
-                // and bits 6,7 are inputs. The C64 has 7406 inverters on the
-                // serial-bus pins, so the convention seen at the CIA is
-                // "1 = line asserted (low), 0 = line released (high)" — i.e.
-                // the same polarity as the OUT bits (write 1 = assert).
-                // Confirmed by KERNAL code at $ED44-47: read DATA IN with
-                // bus idle and BCS branches to error iff DATA is "asserted".
-                let mut pin = 0u8;  // bits default to "released"
+                // For IEC: convention at the CIA is "0 = line asserted (low),
+                // 1 = line released (high)" — opposite of the OUT side. The
+                // KERNAL's `BCS $EDAD` after a DATA-IN read at $ED47 confirms
+                // this: it branches to DEVICE-NOT-PRESENT when bit 7 = 1.
+                // If 1 meant asserted, BCS would fire when drive responded,
+                // which would obviously break LOAD.
+                let mut pin = 0xFFu8; // bits default to "released"
                 if let Some(b) = &self.iec {
                     let b = b.borrow();
-                    if b.clk_low()  { pin |= 0x40; }
-                    if b.data_low() { pin |= 0x80; }
+                    if b.clk_low()  { pin &= !0x40; }
+                    if b.data_low() { pin &= !0x80; }
                 }
                 (self.pra & self.ddra) | (pin & !self.ddra)
             },

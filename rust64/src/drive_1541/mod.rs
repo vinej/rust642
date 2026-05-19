@@ -59,10 +59,12 @@ impl Drive1541 {
         self.bus.via1.set_iec(iec);
     }
 
-    /// Enable per-write tracing on VIA1. Combined with the IEC-bus edge log
-    /// in C64::trace_step this gives a full PC-by-PC view of the handshake.
+    /// Enable per-write tracing on VIA1 and VIA2. Combined with the IEC-bus
+    /// edge log in C64::trace_step this gives a full PC-by-PC view of the
+    /// IEC handshake (VIA1) and the disk subsystem (VIA2: motor/step/density).
     pub fn set_trace(&mut self, on: bool) {
         self.bus.via1.set_trace(on);
+        self.bus.via2.set_trace(on);
     }
 
     /// Mount a D64 image so the drive's read head sees real GCR-encoded bytes
@@ -133,6 +135,17 @@ impl Drive1541 {
         // Disk first — its byte-ready pulse is observed by VIA2 in the tick
         // immediately after, so the ROM can pick it up via CA1 IFR.
         self.bus.disk.borrow_mut().rotate(1);
+
+        // SO pin on the 6502: in the 1541 hardware, the disk-controller's
+        // BYTE-READY signal is wired to the CPU's SO (Set Overflow) input.
+        // When BYTE READY pulses, the V flag of the processor status register
+        // is set; the ROM polls it with `BVC` (e.g. $F3BE: BVC $F3BE) and
+        // clears it with `CLV` after consuming the byte.
+        if self.bus.disk.borrow().byte_ready {
+            let p = self.cpu.get_status_register();
+            self.cpu.set_status_register(p | 0x40);
+        }
+
         self.bus.via1.tick(1);
         self.bus.via2.tick(1);
 
@@ -140,6 +153,7 @@ impl Drive1541 {
         // cycle. CPU.pc here is the PC of the *next* instruction to fetch.
         let pc = self.cpu.get_program_counter();
         self.bus.via1.set_trace_pc(pc);
+        self.bus.via2.set_trace_pc(pc);
 
         if self.bus.irq_asserted() {
             self.cpu.interrupt_request();
