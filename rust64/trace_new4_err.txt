@@ -1,0 +1,457 @@
+warning: no edition set: defaulting to the 2015 edition while the latest is 2024
+   Compiling rust64 v0.6.1 (C:\learnai\rust\rust642\rust64)
+warning: rust64@0.6.1: rust64: SDL3 library not found via SDL3_LIB_DIR, SDL3_PATH, or alongside the crate. Set one of these or the link step will fail.
+warning: unnecessary parentheses around index expression
+    --> src\c64\vic.rs:1165:80
+     |
+1165 |         self.window_buffer[screen_pos + 1] = utils::fetch_c64_color_rgba(color[(data as usize)]);
+     |                                                                                ^             ^
+     |
+     = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
+help: remove these parentheses
+     |
+1165 -         self.window_buffer[screen_pos + 1] = utils::fetch_c64_color_rgba(color[(data as usize)]);
+1165 +         self.window_buffer[screen_pos + 1] = utils::fetch_c64_color_rgba(color[data as usize]);
+     |
+
+warning: `rust64` (bin "rust64") generated 1 warning (run `cargo fix --bin "rust64" -p rust64` to apply 1 suggestion)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.41s
+     Running `target\debug\rust64.exe truedrive tracedrive autoload run test.d64`
+[E9B7-CLK-REL] cyc=2169623 ifr1=00 ifr2=00 irq=0 c64={atn:1 clk:1 dat:0} drv={clk:0 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=2169624 ifr1=00 ifr2=00 irq=0 c64={atn:1 clk:1 dat:0} drv={clk:0 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=2169625 ifr1=00 ifr2=00 irq=0 c64={atn:1 clk:1 dat:0} drv={clk:0 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=2169626 ifr1=00 ifr2=00 irq=0 c64={atn:1 clk:1 dat:0} drv={clk:0 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=2169627 ifr1=00 ifr2=00 irq=0 c64={atn:1 clk:1 dat:0} drv={clk:0 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=2169628 ifr1=00 ifr2=00 irq=0 c64={atn:1 clk:1 dat:0} drv={clk:0 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=2176035 ifr1=40 ifr2=00 irq=0 c64={atn:1 clk:1 dat:0} drv={clk:0 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=2176036 ifr1=40 ifr2=00 irq=0 c64={atn:1 clk:1 dat:0} drv={clk:0 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=2176037 ifr1=40 ifr2=00 irq=0 c64={atn:1 clk:1 dat:0} drv={clk:0 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=2176038 ifr1=40 ifr2=00 irq=0 c64={atn:1 clk:1 dat:0} drv={clk:0 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=2176039 ifr1=40 ifr2=00 irq=0 c64={atn:1 clk:1 dat:0} drv={clk:0 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=2176040 ifr1=40 ifr2=00 irq=0 c64={atn:1 clk:1 dat:0} drv={clk:0 dat:1 atna:0}
+[EA4E clk-rel]  ch=4 F2=01 cyc=2177784
+[EA4E clk-rel]  ch=4 F2=01 cyc=2177785
+[EA4E clk-rel]  ch=4 F2=01 cyc=2177786
+[E9B7-CLK-REL] cyc=3788120 ifr1=00 ifr2=02 irq=0 c64={atn:1 clk:0 dat:0} drv={clk:0 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3788121 ifr1=00 ifr2=02 irq=0 c64={atn:1 clk:0 dat:0} drv={clk:0 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3788122 ifr1=00 ifr2=02 irq=0 c64={atn:1 clk:0 dat:0} drv={clk:0 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3788123 ifr1=00 ifr2=02 irq=0 c64={atn:1 clk:0 dat:0} drv={clk:0 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3788124 ifr1=00 ifr2=02 irq=0 c64={atn:1 clk:0 dat:0} drv={clk:0 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3788125 ifr1=00 ifr2=02 irq=0 c64={atn:1 clk:0 dat:0} drv={clk:0 dat:0 atna:0}
+[E913 bit7-chk] ch=1 F2=88 cyc=3791499
+[E913 bit7-chk] ch=1 F2=88 cyc=3791500
+[E913 bit7-chk] ch=1 F2=88 cyc=3791501
+[E913 bit7-chk] ch=1 F2=88 cyc=3791502
+[E9B7-CLK-REL] cyc=3791558 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3791559 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3791560 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3791561 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3791562 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3791563 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E931 bit3-chk] ch=1 F2=88 EC=04 byte=01 cyc=3791637
+[E931 bit3-chk] ch=1 F2=88 EC=04 byte=01 cyc=3791638
+[E931 bit3-chk] ch=1 F2=88 EC=04 byte=01 cyc=3791639
+[E9B7-CLK-REL] cyc=3791792 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3791793 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3791794 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3791795 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3791796 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3791797 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3791941 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3791942 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3791943 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3791944 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3791945 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3791946 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792090 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792091 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792092 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792093 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792094 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792095 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792239 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792240 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792241 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792242 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792243 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792244 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792388 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792389 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792390 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792391 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792392 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792393 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792537 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792538 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792539 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792540 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792541 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792542 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792686 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792687 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792688 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792689 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792690 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792691 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792835 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792836 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792837 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792838 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792839 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3792840 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E913 bit7-chk] ch=1 F2=88 cyc=3793147
+[E913 bit7-chk] ch=1 F2=88 cyc=3793148
+[E913 bit7-chk] ch=1 F2=88 cyc=3793149
+[E913 bit7-chk] ch=1 F2=88 cyc=3793150
+[E9B7-CLK-REL] cyc=3793206 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3793207 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3793208 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3793209 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3793210 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3793211 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E931 bit3-chk] ch=1 F2=88 EC=04 byte=08 cyc=3793337
+[E931 bit3-chk] ch=1 F2=88 EC=04 byte=08 cyc=3793338
+[E931 bit3-chk] ch=1 F2=88 EC=04 byte=08 cyc=3793339
+[E9B7-CLK-REL] cyc=3793494 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3793495 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3793496 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3793497 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3793498 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3793499 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3793643 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3793644 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3793645 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3793646 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3793647 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3793648 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3793792 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3793793 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3793794 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3793795 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3793796 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3793797 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3793939 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3793940 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3793941 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3793942 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3793943 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3793944 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3794088 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794089 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794090 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794091 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794092 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794093 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794237 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794238 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794239 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794240 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794241 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794242 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794386 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794387 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794388 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794389 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794390 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794391 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794535 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794536 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794537 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794538 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794539 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3794540 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E913 bit7-chk] ch=1 F2=88 cyc=3794847
+[E913 bit7-chk] ch=1 F2=88 cyc=3794848
+[E913 bit7-chk] ch=1 F2=88 cyc=3794849
+[E913 bit7-chk] ch=1 F2=88 cyc=3794850
+[E9B7-CLK-REL] cyc=3794906 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3794907 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3794908 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3794909 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3794910 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3794911 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E931 bit3-chk] ch=1 F2=88 EC=04 byte=0C cyc=3797221
+[E931 bit3-chk] ch=1 F2=88 EC=04 byte=0C cyc=3797222
+[E931 bit3-chk] ch=1 F2=88 EC=04 byte=0C cyc=3797223
+[E9B7-CLK-REL] cyc=3797378 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3797379 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3797380 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3797381 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3797382 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3797383 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3797527 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3797528 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3797529 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3797530 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3797531 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3797532 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3797674 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3797675 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3797676 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3797677 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3797678 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3797679 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3797821 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3797822 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3797823 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3797824 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3797825 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3797826 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3797970 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3797971 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3797972 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3797973 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3797974 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3797975 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3798119 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3798120 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3798121 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3798122 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3798123 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3798124 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3798268 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3798269 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3798270 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3798271 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3798272 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3798273 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3798417 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3798418 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3798419 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3798420 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3798421 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3798422 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E913 bit7-chk] ch=1 F2=88 cyc=3798729
+[E913 bit7-chk] ch=1 F2=88 cyc=3798730
+[E913 bit7-chk] ch=1 F2=88 cyc=3798731
+[E913 bit7-chk] ch=1 F2=88 cyc=3798732
+[E9B7-CLK-REL] cyc=3798788 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3798789 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3798790 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3798791 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3798792 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E9B7-CLK-REL] cyc=3798793 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:1} drv={clk:1 dat:0 atna:0}
+[E931 bit3-chk] ch=1 F2=88 EC=04 byte=08 cyc=3798919
+[E931 bit3-chk] ch=1 F2=88 EC=04 byte=08 cyc=3798920
+[E931 bit3-chk] ch=1 F2=88 EC=04 byte=08 cyc=3798921
+[E9B7-CLK-REL] cyc=3799076 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3799077 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3799078 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3799079 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3799080 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3799081 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3799225 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3799226 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3799227 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3799228 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3799229 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3799230 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3799374 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E9B7-CLK-REL] cyc=3799375 ifr1=40 ifr2=02 irq=0 c64={atn:0 clk:0 dat:0} drv={clk:1 dat:1 atna:0}
+[E913 bit7-chk] ch=1 F2=88 cyc=3800429
+[E913 bit7-chk] ch=1 F2=88 cyc=3800430
+[E913 bit7-chk] ch=1 F2=88 cyc=3800431
+[E913 bit7-chk] ch=1 F2=88 cyc=3800432
+[E931 bit3-chk] ch=1 F2=88 EC=04 byte=0A cyc=3800567
+[E931 bit3-chk] ch=1 F2=88 EC=04 byte=0A cyc=3800568
+[E931 bit3-chk] ch=1 F2=88 EC=04 byte=0A cyc=3800569
+[IRQ@ACK-WAIT] pc=$E987 cyc=3801842 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3801843 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3801863 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3801864 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3801865 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3801866 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3801867 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3801868 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3801885 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3801886 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3801887 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3801888 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3801889 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3801890 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3801891 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3801892 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3801893 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3801894 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3801895 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3801915 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3801916 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3801917 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3801918 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3801919 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3801920 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3801937 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3801938 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3801939 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3801940 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3801941 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3801942 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3801943 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3801944 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3801945 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3801946 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3801947 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3801967 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3801968 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3801969 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3801970 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3801971 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3801972 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3801989 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3801990 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3801991 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3801992 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3801993 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3801994 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3801995 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3801996 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3801997 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3801998 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3801999 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802019 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802020 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802021 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802022 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802023 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802024 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802041 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802042 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802043 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802044 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802045 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802046 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3802047 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3802048 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802049 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802050 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802051 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802071 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802072 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802073 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802074 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802075 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802076 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802093 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802094 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802095 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802096 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802097 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802098 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3802099 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3802100 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802101 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802102 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802103 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802123 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802124 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802125 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802126 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802127 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802128 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802145 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802146 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802147 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802148 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802149 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802150 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3802151 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3802152 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802153 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802154 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802155 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802175 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802176 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802177 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802178 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802179 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802180 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802197 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802198 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802199 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802200 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802201 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802202 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3802203 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3802204 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802205 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802206 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802207 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802227 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802228 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802229 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802230 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802231 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802232 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802249 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802250 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802251 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802252 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802253 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802254 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3802255 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3802256 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802257 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802258 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802259 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802279 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802280 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802281 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802282 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802283 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802284 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802301 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802302 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802303 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802304 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802305 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802306 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3802307 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3802308 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802309 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802310 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802311 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802331 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802332 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802333 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802334 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802335 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802336 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802353 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802354 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802355 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802356 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802357 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802358 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3802359 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3802360 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802361 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802362 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802363 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802383 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802384 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802385 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802386 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802387 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802388 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802405 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802406 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802407 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802408 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802409 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802410 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3802411 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98F cyc=3802412 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802413 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802414 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E987 cyc=3802415 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802435 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802436 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802437 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802438 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802439 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98A cyc=3802440 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802457 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802458 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802459 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802460 via1_ifr=40 via2_ifr=42
+[IRQ@ACK-WAIT] pc=$E98D cyc=3802461 via1_ifr=40 via2_ifr=42

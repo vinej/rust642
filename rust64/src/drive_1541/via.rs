@@ -97,6 +97,11 @@ pub struct Via {
     disk: Option<DiskShared>,
     // Last seen step-phase bits — used to detect head-step transitions.
     step_phase: u8,
+    // Half-track position: 0 = track 1, 2 = track 2, ... 34 = track 18.
+    // Two half-steps in the same direction = one full-track change.
+    // We only call set_track() at even positions so fine-tuning micro-steps
+    // that reverse before crossing a full-track boundary are no-ops.
+    half_track: i16,
 
     pub irq_pending: bool,
 
@@ -119,6 +124,7 @@ impl Via {
             prev_atn_low: false,
             disk: None,
             step_phase: 0,
+            half_track: 34,   // track 18 = (18-1)*2
             irq_pending: false,
             trace: false,
             trace_pc: 0,
@@ -129,6 +135,8 @@ impl Via {
     pub fn set_disk(&mut self, disk: DiskShared) { self.disk = Some(disk); }
     pub fn set_trace(&mut self, on: bool) { self.trace = on; }
     pub fn set_trace_pc(&mut self, pc: u16) { self.trace_pc = pc; }
+    pub fn ifr(&self) -> u8 { self.regs[R_IFR] }
+    pub fn iec_opt(&self) -> Option<&IecBusShared> { self.iec.as_ref() }
 
     pub fn reset(&mut self) {
         for r in self.regs.iter_mut() { *r = 0; }
@@ -136,6 +144,7 @@ impl Via {
         self.t2_counter = 0xFFFF; self.t2_running = false;
         self.prev_atn_low = false;
         self.step_phase = 0;
+        self.half_track = 34;
         self.irq_pending = false;
         if let Some(b) = &self.iec {
             let mut b = b.borrow_mut();
@@ -253,8 +262,12 @@ impl Via {
                 self.t2_running = true;
                 self.regs[R_IFR] &= !IFR_T2;
             }
-            R_ACR => self.regs[R_ACR] = val,
-            R_PCR => self.regs[R_PCR] = val,
+            R_ACR => {
+                self.regs[R_ACR] = val;
+            }
+            R_PCR => {
+                self.regs[R_PCR] = val;
+            }
             R_IFR => {
                 // Writing a 1 to a bit CLEARS that bit (active-low write).
                 self.regs[R_IFR] &= !(val & 0x7F);
@@ -306,7 +319,21 @@ impl Via {
             if let Some(b) = &self.iec {
                 let atn_low = b.borrow().atn_low();
                 if atn_low != self.prev_atn_low {
-                    self.regs[R_IFR] |= IFR_CA1;
+                    // CA1 is wired to the raw IEC ATN bus (no 7406 between ATN and CA1).
+                    // Bus LOW  = CA1 LOW  = falling edge = ATN asserted.
+                    // Bus HIGH = CA1 HIGH = rising edge  = ATN released.
+                    // PCR bit 0: 0 = interrupt on CA1 falling edge, 1 = rising edge.
+                    // The 1541 ROM writes PCR=$01 (rising edge active for CA1).
+                    // CA1 is driven by the 7406-inverted ATN: asserted bus LOW
+                    // → 7406 HIGH → CA1 rising edge. Released bus HIGH → CA1 LOW.
+                    // Firing on both edges caused spurious IRQs (ATN-handler ran
+                    // mid-TALK on the release edge) that released CLK prematurely.
+                    let ca1_rose = atn_low && !self.prev_atn_low;   // 7406 → HIGH
+                    let ca1_fell = !atn_low && self.prev_atn_low;   // 7406 → LOW
+                    let pcr_pos  = self.regs[R_PCR] & 0x01 != 0;
+                    if (pcr_pos && ca1_rose) || (!pcr_pos && ca1_fell) {
+                        self.regs[R_IFR] |= IFR_CA1;
+                    }
                 }
                 self.prev_atn_low = atn_low;
             }
@@ -422,17 +449,19 @@ impl Via {
         let prev = self.step_phase;
         let diff = (new_phase as i8 - prev as i8) & 3;
         if diff != 0 {
-            let mut new_track = d.track as i16;
-            // We model integer tracks only: every two phase advances = one
-            // physical-track step. Pragmatic shortcut; real hardware steps
-            // by half-tracks.
+            // Each phase change = one half-track. Two half-track steps in the
+            // same direction = one full track change. We only call set_track()
+            // at even half_track values so fine-tuning micro-steps that reverse
+            // before crossing a full-track boundary don't reset byte_pos.
             match diff {
-                1 => new_track += 1,    // step in (toward center, higher track #)
-                3 => new_track -= 1,    // step out (toward edge, lower track #)
-                _ => {}                 // 2 = double-skip, rare; ignore
+                1 => self.half_track = (self.half_track + 1).min(68),
+                3 => self.half_track = (self.half_track - 1).max(0),
+                _ => {}   // 2 = double-skip, rare; ignore
             }
-            let nt = new_track.max(1).min(35) as u8;
-            d.set_track(nt);
+            if self.half_track % 2 == 0 {
+                let nt = (self.half_track / 2 + 1) as u8;
+                d.set_track(nt);
+            }
         }
         drop(d);
         self.step_phase = new_phase;

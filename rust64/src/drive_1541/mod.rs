@@ -41,6 +41,9 @@ pub struct Drive1541 {
     pub bus: DriveBus,
     pub enabled: bool,    // false if no ROM was found / mounted
     pub cycle_count: u64,
+    talk_trace_hits: u32, // limit IEC talk trace output
+    clk_rel_hits: u32,   // limit CLK-release entry trace output
+    irq_ack_hits: u32,   // limit IRQ-in-ack-wait trace output
 }
 
 impl Drive1541 {
@@ -52,6 +55,9 @@ impl Drive1541 {
             bus: DriveBus::new(),
             enabled: false,
             cycle_count: 0,
+            talk_trace_hits: 0,
+            clk_rel_hits: 0,
+            irq_ack_hits: 0,
         }
     }
 
@@ -90,6 +96,9 @@ impl Drive1541 {
                         bus,
                         enabled: false,
                         cycle_count: 0,
+                        talk_trace_hits: 0,
+                        clk_rel_hits: 0,
+                        irq_ack_hits: 0,
                     };
                 }
                 println!("1541: loaded {} ({} bytes)", path.display(), bytes.len());
@@ -106,6 +115,9 @@ impl Drive1541 {
                     bus,
                     enabled: false,
                     cycle_count: 0,
+                    talk_trace_hits: 0,
+                    clk_rel_hits: 0,
+                    irq_ack_hits: 0,
                 };
             }
         }
@@ -115,6 +127,9 @@ impl Drive1541 {
             bus,
             enabled: true,
             cycle_count: 0,
+            talk_trace_hits: 0,
+            clk_rel_hits: 0,
+            irq_ack_hits: 0,
         };
         drive.reset();
         drive
@@ -158,6 +173,96 @@ impl Drive1541 {
         if self.bus.irq_asserted() {
             self.cpu.interrupt_request();
         }
+
+        // Targeted trace for IEC TALK byte-send debugging.
+        // Fires at the key decision points in the 1541 ROM's send loop;
+        // limited to 200 total hits so the log stays readable.
+        if self.talk_trace_hits < 200 {
+            let pc = self.cpu.get_program_counter();
+            let hit = match pc {
+                // $E913: BMI check — is bit7 of F2[ch] set? (active channel)
+                0xE913 => {
+                    let ch = self.bus.ram[0x82] as usize;
+                    let f2 = if ch < 16 { self.bus.ram[0xF2 + ch] } else { 0xFF };
+                    eprintln!("[E913 bit7-chk] ch={} F2={:02X} cyc={}", ch, f2, self.cycle_count);
+                    true
+                }
+                // $E931: AND #$08 — is bit3 set? (EOI vs direct-CLK path)
+                0xE931 => {
+                    let ch = self.bus.ram[0x82] as usize;
+                    let f2   = if ch < 16          { self.bus.ram[0xF2 + ch] } else { 0xFF };
+                    let ec   = if ch < 16          { self.bus.ram[0xEC + ch] } else { 0xFF };
+                    let bsnd = if 0x23E + ch < 0x800 { self.bus.ram[0x23E + ch] } else { 0xFF };
+                    eprintln!("[E931 bit3-chk] ch={} F2={:02X} EC={:02X} byte={:02X} cyc={}",
+                        ch, f2, ec, bsnd, self.cycle_count);
+                    true
+                }
+                // $EA4E: CLK release + jump to scheduler (wrong path — bit7 was 0)
+                0xEA4E => {
+                    let ch = self.bus.ram[0x82] as usize;
+                    let f2 = if ch < 16 { self.bus.ram[0xF2 + ch] } else { 0xFF };
+                    eprintln!("[EA4E clk-rel]  ch={} F2={:02X} cyc={}", ch, f2, self.cycle_count);
+                    true
+                }
+                // $DCFA: STA $F2,X with #$01 (file-open sets F2=01, bit7=0)
+                0xDCFA => {
+                    let ch = self.bus.ram[0x82] as usize;
+                    eprintln!("[DCFA F2<-01]   ch={} cyc={}", ch, self.cycle_count);
+                    true
+                }
+                // $E142: STA $F2,Y with #$89 (non-last block, bit3=1)
+                0xE142 => {
+                    let ch = self.bus.ram[0x82] as usize;
+                    eprintln!("[E142 F2<-89]   ch={} cyc={}", ch, self.cycle_count);
+                    true
+                }
+                // $E14F: STA $F2,Y with #$81 (last block/EOF, bit3=0)
+                0xE14F => {
+                    let ch = self.bus.ram[0x82] as usize;
+                    eprintln!("[E14F F2<-81]   ch={} cyc={}", ch, self.cycle_count);
+                    true
+                }
+                _ => false,
+            };
+            if hit { self.talk_trace_hits += 1; }
+        }
+
+        // Trace A: log every entry into the CLK-release routine.
+        // Normal calls come from the bit-send loop ($E958-$E985).
+        // A call from any other origin (e.g. an IRQ handler) appears here
+        // with a non-zero IFR, exposing the unexpected CLK-release at $E9BF.
+        if self.clk_rel_hits < 200 && pc == 0xE9B7 {
+            let ifr1 = self.bus.via1.ifr();
+            let ifr2 = self.bus.via2.ifr();
+            let irq  = self.bus.irq_asserted();
+            if let Some(b) = self.bus.via1.iec_opt() {
+                let b = b.borrow();
+                eprintln!(
+                    "[E9B7-CLK-REL] cyc={} ifr1={:02X} ifr2={:02X} irq={} \
+                     c64={{atn:{} clk:{} dat:{}}} drv={{clk:{} dat:{} atna:{}}}",
+                    self.cycle_count, ifr1, ifr2, irq as u8,
+                    b.c64_atn as u8, b.c64_clk as u8, b.c64_data as u8,
+                    b.drive_clk as u8, b.drive_data as u8, b.drive_atna as u8,
+                );
+            }
+            self.clk_rel_hits += 1;
+        }
+
+        // Trace B: log whenever an IRQ is pending while the CPU is in the
+        // ack-wait loop.  If this fires, a VIA interrupt is firing mid-ack-wait
+        // and the IRQ handler is responsible for the unexpected CLK-release.
+        if self.irq_ack_hits < 200 && self.bus.irq_asserted()
+            && matches!(pc, 0xE987..=0xE990)
+        {
+            let ifr1 = self.bus.via1.ifr();
+            let ifr2 = self.bus.via2.ifr();
+            eprintln!(
+                "[IRQ@ACK-WAIT] pc=${:04X} cyc={} via1_ifr={:02X} via2_ifr={:02X}",
+                pc, self.cycle_count, ifr1, ifr2,
+            );
+            self.irq_ack_hits += 1;
+        }
+
         self.cpu.cycle(&mut self.bus);
         self.cycle_count = self.cycle_count.wrapping_add(1);
     }

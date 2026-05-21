@@ -25,6 +25,7 @@ fn main() {
     let mut auto_run     = false;
     let mut truedrive    = false;
     let mut tracedrive   = false;
+    let mut autoload     = false;
     let mut window_scale = Scale::X2;
 
     // process cmd line params
@@ -50,6 +51,9 @@ fn main() {
         else if args[i] == "tracedrive" {
             tracedrive = true;
         }
+        else if args[i] == "autoload" {
+            autoload = true;
+        }
         else if args[i].ends_with(".prg") {
             prg_to_load = args[i].clone();
         }
@@ -61,7 +65,7 @@ fn main() {
         }
     }
 
-    let mut c64 = c64::C64::new(window_scale, debugger_on, &prg_to_load, &crt_to_load, &d64_to_mount, auto_run, truedrive, tracedrive);
+    let mut c64 = c64::C64::new(window_scale, debugger_on, &prg_to_load, &crt_to_load, &d64_to_mount, auto_run, truedrive, tracedrive, autoload);
     c64.reset();
 
     // main update loop

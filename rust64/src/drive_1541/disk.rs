@@ -96,6 +96,13 @@ impl Disk {
     /// Advance the disk by `cycles` master clocks. When enough cycles have
     /// passed for one GCR byte to slide under the head, we advance byte_pos
     /// and set `byte_ready` so VIA2 can pulse CA1 once.
+    ///
+    /// byte_ready is suppressed while the new position is a sync-mark byte
+    /// ($FF), mirroring the real 1541 hardware which gates byte_ready off
+    /// during the sync field. Without suppression the ROM's BVC-after-sync
+    /// loop would catch a byte_ready for an intermediate sync byte and read
+    /// $FF instead of the first GCR data byte ($52), causing every header
+    /// comparison to fail.
     pub fn rotate(&mut self, cycles: u32) {
         if !self.motor_on || self.track_buffer.is_empty() { return; }
         let period = CYCLES_PER_BYTE[(self.density & 0x03) as usize];
@@ -103,7 +110,9 @@ impl Disk {
         while self.rotation_counter >= period {
             self.rotation_counter -= period;
             self.byte_pos = (self.byte_pos + 1) % self.track_buffer.len();
-            self.byte_ready = true;
+            if !self.sync_mask[self.byte_pos] {
+                self.byte_ready = true;
+            }
         }
     }
 
@@ -140,9 +149,15 @@ impl Disk {
             31..=35 => 17,
             _ => return,
         };
-        // ID for header checksum — for our synthetic disks we just use "01".
-        let id1: u8 = b'0';
-        let id2: u8 = b'1';
+        // Disk ID from BAM (track 18, sector 0, bytes $A2–$A3).
+        // D64 BAM layout: $90–$9F = disk name, $A0–$A1 = filler ($A0),
+        // $A2 = id1, $A3 = id2, $A4 = filler, $A5–$A6 = DOS type "2A".
+        // The 1541 ROM reads the ID from BAM[$A2/$A3] after the first
+        // successful BAM sector read, then verifies every subsequent
+        // sector header's ID against it — a mismatch causes a retry loop.
+        let (id1, id2) = img.sector(18, 0)
+            .map(|bam| (bam[0xA2], bam[0xA3]))
+            .unwrap_or((b'0', b'1'));
 
         // Lay out: for each sector,
         //   [5 x sync $FF] [10-byte GCR header] [9-byte gap $55]

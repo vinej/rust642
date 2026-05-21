@@ -226,6 +226,10 @@ pub struct CIA {
     alarm_sec:  u8,
     alarm_dsec: u8,
 
+    // last C64 PC seen before cpu.update() — used for trace prints inside write_register
+    // (can't borrow cpu_ref there since the CPU already has a mutable borrow in flight)
+    pub trace_pc: u16,
+
     // CIA1 only
     pub key_matrix: [u8; 8],
     pub rev_matrix: [u8; 8],
@@ -265,6 +269,8 @@ impl CIA {
             alarm_min: 0,
             alarm_sec: 0,
             alarm_dsec: 0,
+
+            trace_pc: 0,
 
             // CIA1 only
             key_matrix: [0xFF; 8],
@@ -503,7 +509,7 @@ impl CIA {
             
             self.timer_a.irq_next_cycle = false
         }
-        if self.timer_a.irq_next_cycle {
+        if self.timer_b.irq_next_cycle {
             if self.trigger_irq(2) {
                 if self.is_cia1 {
                     as_mut!(self.cpu_ref).set_cia_irq(true);
@@ -512,8 +518,8 @@ impl CIA {
                     as_mut!(self.cpu_ref).set_nmi(true);
                 }
             }
-            
-            self.timer_a.irq_next_cycle = false
+
+            self.timer_b.irq_next_cycle = false
         }
     }
 
@@ -684,20 +690,20 @@ impl CIA {
     fn read_cia2_register(&mut self, addr: u16) -> u8 {
         match addr {
             0xDD00 => {
-                // Standard CIA PA read:
-                //   output bits (DDR=1) come from the PRA latch
-                //   input  bits (DDR=0) come from the pin
-                // For IEC: convention at the CIA is "0 = line asserted (low),
-                // 1 = line released (high)" — opposite of the OUT side. The
-                // KERNAL's `BCS $EDAD` after a DATA-IN read at $ED47 confirms
-                // this: it branches to DEVICE-NOT-PRESENT when bit 7 = 1.
-                // If 1 meant asserted, BCS would fire when drive responded,
-                // which would obviously break LOAD.
-                let mut pin = 0xFFu8; // bits default to "released"
+                // C64 CIA2 PA input bits 6 (CLK IN) and 7 (DATA IN) are
+                // DIRECT connections from the bus — no 7406 inverter on the
+                // input path. So: bus HIGH (released) → CIA reads 1,
+                // bus LOW (asserted) → CIA reads 0.
+                // This is the OPPOSITE of the 1541 VIA1, which DOES have 7406
+                // inverters on its input pins (bus LOW → VIA reads 1).
+                // The output bits (3=ATN, 4=CLK, 5=DATA) DO have 7406 inverters:
+                // write 1 → 7406 → pull bus LOW = assert. Write polarity matches
+                // read polarity of the 1541 side, but not this (C64) read side.
+                let mut pin = 0xFFu8; // default: bus released → CIA reads 1
                 if let Some(b) = &self.iec {
                     let b = b.borrow();
-                    if b.clk_low()  { pin &= !0x40; }
-                    if b.data_low() { pin &= !0x80; }
+                    if b.clk_low()  { pin &= !0x40; } // bus LOW → bit 6 = 0
+                    if b.data_low() { pin &= !0x80; } // bus LOW → bit 7 = 0
                 }
                 (self.pra & self.ddra) | (pin & !self.ddra)
             },

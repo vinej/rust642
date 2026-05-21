@@ -8,7 +8,9 @@
 // registers):
 //   * WRITES — 1 = "pull line low", 0 = "release"  (output drives an inverter
 //     to an open-collector transistor)
-//   * READS  — 0 = "line is low (asserted)", 1 = "line is high (released)"
+//   * READS  — polarity is ASYMMETRIC between the two ends:
+//     - 1541 VIA1: HAS 7406 inverters on input pins → bus LOW = 1 (asserted)
+//     - C64 CIA2: NO 7406 on input path (direct connection) → bus LOW = 0
 //
 // Pin map:
 //   C64 CIA2 PA bit 3 = ATN OUT

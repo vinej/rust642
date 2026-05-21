@@ -55,6 +55,12 @@ pub struct C64 {
     // C64 keyboard buffer so BASIC executes the program without user input.
     auto_run: bool,
 
+    // if set, stuff LOAD"*",8 + RETURN into the keyboard buffer once BASIC
+    // warm-start is reached, so the drive LOAD is triggered automatically
+    // (used for headless testing of truedrive).
+    autoload: bool,
+    autoload_done: bool,
+
     // Level-3 1541 emulation. When `truedrive` is true and the ROM is found,
     // the drive's 6502 runs alongside the C64's CPU and the KERNAL LOAD trap
     // stays out of the way (so the C64 talks to the drive "for real").
@@ -69,7 +75,7 @@ pub struct C64 {
 }
 
 impl C64 {
-    pub fn new(window_scale: Scale, debugger_on: bool, prg_to_load: &str, crt_to_load: &str, d64_to_mount: &str, auto_run: bool, truedrive: bool, tracedrive: bool) -> C64 {
+    pub fn new(window_scale: Scale, debugger_on: bool, prg_to_load: &str, crt_to_load: &str, d64_to_mount: &str, auto_run: bool, truedrive: bool, tracedrive: bool, autoload: bool) -> C64 {
         let memory = memory::Memory::new_shared();
         let vic    = vic::VIC::new_shared();
         let cia1   = cia::CIA::new_shared(true);
@@ -117,6 +123,8 @@ impl C64 {
             disk_image,
             load_trap_armed: true,
             auto_run,
+            autoload,
+            autoload_done: false,
             truedrive,
             // Only try to load the 1541 ROM when the user opted into truedrive;
             // otherwise it would spam a "ROM not found" warning every boot.
@@ -143,6 +151,7 @@ impl C64 {
                 c64.drive.set_trace(true);
             }
             if let Some(img) = &c64.disk_image {
+                println!("truedrive: mounting d64.");
                 c64.drive.mount_d64(img.clone());
             } else {
                 println!("truedrive: no D64 mounted; drive head will see no data.");
@@ -208,6 +217,19 @@ impl C64 {
                 if prg_file.len() > 0 {
                     self.boot_complete = true; self.load_prg(prg_file);
                 }
+
+                // Inject LOAD"*",8<CR> into the keyboard buffer so the drive
+                // LOAD is triggered without any human input. 10 bytes exactly.
+                if self.autoload && !self.autoload_done {
+                    self.autoload_done = true;
+                    let cmd: &[u8] = b"LOAD\"*\",8\r";
+                    let mut mem = self.memory.borrow_mut();
+                    for (i, &b) in cmd.iter().enumerate() {
+                        mem.write_byte(0x0277 + i as u16, b);
+                    }
+                    mem.write_byte(0x00C6, cmd.len() as u8);
+                    println!("autoload: stuffed LOAD\"*\",8<CR> into keyboard buffer");
+                }
             }
         }
 
@@ -245,12 +267,18 @@ impl C64 {
             self.cia1.borrow_mut().update();
             self.cia2.borrow_mut().update();
 
+            // snapshot C64 PC for CIA1 timer-B trace (can't borrow cpu inside cpu.update)
+            self.cia1.borrow_mut().trace_pc = self.cpu.borrow().pc;
             self.cpu.borrow_mut().update(self.cycle_count);
 
-            // Tick the 1541 drive once per C64 cycle. Within 1.5% of real
-            // timing (1.000 MHz drive vs ~985 kHz C64 PAL), close enough for
-            // the IEC handshake. No-op if the drive ROM didn't load.
-            if self.truedrive {
+            // Tick the 1541 drive once per C64 cycle. When the VIC is
+            // stealing cycles from the C64 CPU (ba_low=true), we also pause
+            // the drive so both sides stay at a 1:1 cycle ratio. Without this,
+            // the drive advances during badlines and the C64 CPU can miss the
+            // brief CLK=H pulses in the IEC serial bit-receive loop, causing a
+            // permanent deadlock on the 5th byte (or whichever byte's CLK=H
+            // window happens to coincide with a VIC badline).
+            if self.truedrive && !self.cpu.borrow().ba_low {
                 self.drive.step();
                 if self.tracedrive { self.trace_step(); }
             }
@@ -508,21 +536,24 @@ impl C64 {
         };
         if state != self.prev_trace_state {
             let b = b.borrow();
+            let c64_pc = self.cpu.borrow().pc;
             println!(
-                "[iec] ATN={} CLK={} DATA={}  c64={{atn:{} clk:{} dat:{}}}  drv={{clk:{} dat:{} atna:{}}}  pc=${:04X}",
+                "[iec] ATN={} CLK={} DATA={}  c64={{atn:{} clk:{} dat:{}}}  drv={{clk:{} dat:{} atna:{}}}  drv=${:04X}  c64=${:04X}",
                 if b.atn_low()  { "L" } else { "H" },
                 if b.clk_low()  { "L" } else { "H" },
                 if b.data_low() { "L" } else { "H" },
                 b.c64_atn  as u8, b.c64_clk  as u8, b.c64_data as u8,
                 b.drive_clk as u8, b.drive_data as u8, b.drive_atna as u8,
                 self.drive.pc(),
+                c64_pc,
             );
             self.prev_trace_state = state;
         }
         self.trace_pc_counter = self.trace_pc_counter.wrapping_add(1);
         if self.trace_pc_counter >= 50_000 {
             self.trace_pc_counter = 0;
-            println!("[drv] pc=${:04X}", self.drive.pc());
+            let c64_pc = self.cpu.borrow().pc;
+            println!("[drv] drv=${:04X}  c64=${:04X}", self.drive.pc(), c64_pc);
         }
     }
 }
