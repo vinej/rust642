@@ -190,7 +190,7 @@ pub fn fetch_operand_addr(cpu: &mut cpu::CPU) -> bool {
                 },
                 1 => { // if page crossed - add 0x100 to operand address
                     if cpu.instruction.zp_crossed {
-                        cpu.instruction.operand_addr += 0x100;
+                        cpu.instruction.operand_addr = cpu.instruction.operand_addr.wrapping_add(0x100);
                     }
                 },
                 _ => panic!("Too many cycles for operand address fetch! ({}) ", cpu.instruction.cycles_to_fetch)
@@ -215,7 +215,7 @@ pub fn fetch_operand_addr(cpu: &mut cpu::CPU) -> bool {
                     }
                 },
                 1 => { // if page crossed - add 0x100 to operand address
-                    if cpu.instruction.zp_crossed { cpu.instruction.operand_addr += 0x100; }
+                    if cpu.instruction.zp_crossed { cpu.instruction.operand_addr = cpu.instruction.operand_addr.wrapping_add(0x100); }
                 },
                 _ => panic!("Too many cycles for operand address fetch! ({}) ", cpu.instruction.cycles_to_fetch)
             }
@@ -293,7 +293,7 @@ pub fn fetch_operand_addr(cpu: &mut cpu::CPU) -> bool {
                     }
                 },
                 1 => { // if page crossed - add 0x100 to operand address
-                    if cpu.instruction.zp_crossed { cpu.instruction.operand_addr += 0x100; }
+                    if cpu.instruction.zp_crossed { cpu.instruction.operand_addr = cpu.instruction.operand_addr.wrapping_add(0x100); }
                 },
                 _ => panic!("Too many cycles for operand address fetch! ({}) ", cpu.instruction.cycles_to_fetch)
             }

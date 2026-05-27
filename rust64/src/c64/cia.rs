@@ -607,6 +607,11 @@ impl CIA {
     }
 
 
+    pub fn ier(&self) -> u8 { self.irq_mask }
+    pub fn icr_peek(&self) -> u8 { self.icr }
+    pub fn pra(&self) -> u8 { self.pra }
+    pub fn ddra(&self) -> u8 { self.ddra }
+
     // true - irq triggered; false - not
     pub fn trigger_irq(&mut self, mask: u8) -> bool {
         self.icr |= mask;
@@ -681,8 +686,8 @@ impl CIA {
                 as_ref!(self.mem_ref).get_ram_bank(memory::MemType::Io).write(addr, value);
                 self.check_lp();
             },
-            0xDC10..=0xDCFF => self.write_cia1_register(0xDC00 + (addr % 0x0010), value, on_cia_write),
-            _ => panic!("Address out of CIA1 memory range"),
+            0xDC10..=0xDCFF => self.write_register(0xDC00 + (addr % 0x0010), value, on_cia_write),
+            _ => panic!("Address out of CIA1 memory range: ${:04X}", addr),
         }
     }
 
@@ -728,8 +733,8 @@ impl CIA {
                     b.c64_atn  = (driven & 0x08) != 0;
                     b.c64_clk  = (driven & 0x10) != 0;
                     b.c64_data = (driven & 0x20) != 0;
-                    println!("[cia2] STA $DD00,#${:02X}  ddra=${:02X}  -> c64{{atn:{} clk:{} dat:{}}}",
-                        value, self.ddra, b.c64_atn as u8, b.c64_clk as u8, b.c64_data as u8);
+                    //println!("[cia2] STA $DD00,#${:02X}  ddra=${:02X}  -> c64{{atn:{} clk:{} dat:{}}}",
+                    //    value, self.ddra, b.c64_atn as u8, b.c64_clk as u8, b.c64_data as u8);
                 }
             },
             0xDD01 => {
@@ -747,13 +752,13 @@ impl CIA {
                     b.c64_atn  = (driven & 0x08) != 0;
                     b.c64_clk  = (driven & 0x10) != 0;
                     b.c64_data = (driven & 0x20) != 0;
-                    println!("[cia2] STA $DD02,#${:02X}  pra=${:02X}  -> c64{{atn:{} clk:{} dat:{}}}",
-                        value, self.pra, b.c64_atn as u8, b.c64_clk as u8, b.c64_data as u8);
+                    //println!("[cia2] STA $DD02,#${:02X}  pra=${:02X}  -> c64{{atn:{} clk:{} dat:{}}}",
+                    //    value, self.pra, b.c64_atn as u8, b.c64_clk as u8, b.c64_data as u8);
                 }
             },
             0xDD03 => { self.ddrb = value; as_ref!(self.mem_ref).get_ram_bank(memory::MemType::Io).write(addr, value); },
-            0xDD10..=0xDDFF => self.write_cia2_register(0xDD00 + (addr % 0x0010), value, on_cia_write),
-            _ => panic!("Address out of CIA2 memory range"),
+            0xDD10..=0xDDFF => self.write_register(0xDD00 + (addr % 0x0010), value, on_cia_write),
+            _ => panic!("Address out of CIA2 memory range: ${:04X}", addr),
         }
     }
 

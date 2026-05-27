@@ -262,17 +262,16 @@ impl CPU {
 
     // stack memory: $0100 - $01FF (256 byes)
     pub fn push_byte(&mut self, value: u8) {
-        self.sp -= 0x01;
-        let new_sp = (self.sp + 0x01) as u16;
-        self.write_byte(0x0100 + new_sp, value);
+        let old_sp = self.sp as u16;
+        self.sp = self.sp.wrapping_sub(0x01);
+        self.write_byte(0x0100 + old_sp, value);
     }
 
 
     pub fn pop_byte(&mut self) -> u8 {
-        let addr = 0x0100 + (self.sp + 0x01) as u16;
-        let value = self.read_byte(addr);
-        self.sp += 0x01;
-        value
+        self.sp = self.sp.wrapping_add(0x01);
+        let addr = 0x0100 + self.sp as u16;
+        self.read_byte(addr)
     }
 
 

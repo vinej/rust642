@@ -109,6 +109,8 @@ pub struct Via {
     // `set_trace_pc()` so we can correlate bus changes with code addresses.
     pub trace: bool,
     pub trace_pc: u16,
+    // Limit noisy [via2] output to first N motor-state changes.
+    pub trace_hits: u32,
 }
 
 impl Via {
@@ -128,6 +130,7 @@ impl Via {
             irq_pending: false,
             trace: false,
             trace_pc: 0,
+            trace_hits: 0,
         }
     }
 
@@ -136,6 +139,7 @@ impl Via {
     pub fn set_trace(&mut self, on: bool) { self.trace = on; }
     pub fn set_trace_pc(&mut self, pc: u16) { self.trace_pc = pc; }
     pub fn ifr(&self) -> u8 { self.regs[R_IFR] }
+    pub fn ier(&self) -> u8 { self.regs[R_IER] }
     pub fn iec_opt(&self) -> Option<&IecBusShared> { self.iec.as_ref() }
 
     pub fn reset(&mut self) {
@@ -213,15 +217,18 @@ impl Via {
                             );
                         }
                         ViaKind::Disk => {
-                            let driven = val & self.regs[R_DDRB];
-                            let motor = (driven & 0x04) != 0;
-                            let led = (driven & 0x08) != 0;
-                            let step = driven & 0x03;
-                            let density = (driven & 0x60) >> 5;
-                            println!(
-                                "[via2] STA $1C00,#${:02X}  pc=${:04X}  -> motor={} led={} step={} density={}",
-                                val, self.trace_pc, motor as u8, led as u8, step, density,
-                            );
+                            if self.trace_hits < 30 {
+                                self.trace_hits += 1;
+                                let driven = val & self.regs[R_DDRB];
+                                let motor = (driven & 0x04) != 0;
+                                let led = (driven & 0x08) != 0;
+                                let step = driven & 0x03;
+                                let density = (driven & 0x60) >> 5;
+                                eprintln!(
+                                    "[via2] STA $1C00,#${:02X}  pc=${:04X}  -> motor={} led={} step={} density={}",
+                                    val, self.trace_pc, motor as u8, led as u8, step, density,
+                                );
+                            }
                         }
                     }
                 }
