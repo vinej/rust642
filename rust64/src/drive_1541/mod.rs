@@ -100,9 +100,34 @@ pub struct Drive1541 {
     // Shows when C64 asserts ATN for the second file open/talk sequence.
     prev_atn_low: bool,
     atn_rise_hits: u32,
+    // SECOND-OPEN: trace DF93 entries at >93M — dumps full command buffer so
+    // we can see exactly what filename the C64 sent for the post-load OPEN.
+    second_open_hits: u32,
+    // JOB-WATCH: monitor drive RAM $00-$05 (job queue) after 90M cycles.
+    // A non-zero job byte means the drive scheduled a disk read/write.
+    // If these never change after the SECOND-OPEN, the ROM never started a disk read.
+    prev_job_table: [u8; 6],
+    job_watch_hits: u32,
+    // FIX: DF93 closes channel 1 ($F3 = F2[1] → 00) when it processes OPEN+SA=1+fname="".
+    // But the drive pre-loaded the second game file into buffer 1 ($F3=88) during the first
+    // transfer. We save the pre-loaded $F3 value here and restore it at the next E85B entry
+    // so the fast-loader ATN handler (E8D7) finds data ready (bit7=1) and sends it.
+    fix_f3_restore: Option<u8>,
 }
 
 impl Drive1541 {
+    fn restore_saved_f3(ram: &mut [u8], saved: Option<u8>, ch: usize) -> bool {
+        if let Some(saved_value) = saved {
+            let target = if ch < 16 { 0xF2 + ch } else { 0xF3 };
+            let old = ram[target];
+            if old != saved_value {
+                ram[target] = saved_value;
+                return true;
+            }
+        }
+        false
+    }
+
     /// Construct a drive in the "off" state — no ROM, no ticking.
     /// Used when --truedrive wasn't requested; saves a noisy ROM-lookup warning.
     pub fn disabled() -> Self {
@@ -144,6 +169,10 @@ impl Drive1541 {
             f2_ch1_hits: 0,
             prev_atn_low: false,
             atn_rise_hits: 0,
+            second_open_hits: 0,
+            prev_job_table: [0u8; 6],
+            job_watch_hits: 0,
+            fix_f3_restore: None,
         }
     }
 
@@ -215,6 +244,10 @@ impl Drive1541 {
             f2_ch1_hits: 0,
             prev_atn_low: false,
             atn_rise_hits: 0,
+            second_open_hits: 0,
+            prev_job_table: [0u8; 6],
+            job_watch_hits: 0,
+            fix_f3_restore: None,
                     };
                 }
                 println!("1541: loaded {} ({} bytes)", path.display(), bytes.len());
@@ -264,6 +297,10 @@ impl Drive1541 {
             f2_ch1_hits: 0,
             prev_atn_low: false,
             atn_rise_hits: 0,
+            second_open_hits: 0,
+            prev_job_table: [0u8; 6],
+            job_watch_hits: 0,
+            fix_f3_restore: None,
                 };
             }
         }
@@ -306,6 +343,10 @@ impl Drive1541 {
             f2_ch1_hits: 0,
             prev_atn_low: false,
             atn_rise_hits: 0,
+            second_open_hits: 0,
+            prev_job_table: [0u8; 6],
+            job_watch_hits: 0,
+            fix_f3_restore: None,
         };
         drive.reset();
         drive
@@ -457,6 +498,70 @@ impl Drive1541 {
             self.df93_hits += 1;
         }
 
+        // SECOND-OPEN: DF93 entry at >93M — dump full command buffer so we can see
+        // the exact filename bytes the C64 sent for the post-load OPEN, and check
+        // whether any buffer slot was assigned or the directory search failed.
+        if self.second_open_hits < 10 && self.cycle_count > 93_000_000 && pc == 0xDF93 {
+            let r = &self.bus.ram;
+            let sa = r[0x82];
+            let cmd: Vec<String> = (0..32usize)
+                .map(|i| format!("{:02X}", r[0x200 + i]))
+                .collect();
+            let slots: Vec<String> = (0..16usize)
+                .map(|i| format!("{:02X}", r[0x22B + i]))
+                .collect();
+            let f2: Vec<String> = (0..16usize)
+                .map(|i| format!("{:02X}", r[0xF2 + i]))
+                .collect();
+            // Decode printable filename from command buffer (skip leading SA byte if any)
+            let fname: String = (0..20usize)
+                .map(|i| {
+                    let b = r[0x200 + i];
+                    if b >= 0x20 && b < 0x7F { b as char } else { '.' }
+                })
+                .collect::<String>()
+                .trim_end_matches('.')
+                .to_string();
+            eprintln!(
+                "[SECOND-OPEN] cyc={} SA={:02X} $7C={:02X} $026C={:02X} fname=\"{}\"\n\
+                 cmd_buf[0..32]: {}\n\
+                 slots[0..16]:   {}\n\
+                 F2[0..16]:      {}",
+                self.cycle_count, sa, r[0x7C], r[0x26C], fname,
+                cmd.join(" "),
+                slots.join(" "),
+                f2.join(" "),
+            );
+            // FIX: preserve channel-1 buffer state so the second-file fast-loader handoff
+            // can recover the pre-loaded F2[1] byte after DF93 clears it to 00.
+            // Save the full byte (not just bit7) because the 1541 ROM uses the whole
+            // channel-status value during the later E85B/E8D7/E909 path.
+            if sa == 1 && fname.is_empty() {
+                let ch = sa as usize;
+                let f3_val = if ch < 16 { self.bus.ram[0xF2 + ch] } else { self.bus.ram[0xF3] };
+                if self.fix_f3_restore.is_none() {
+                    self.fix_f3_restore = Some(f3_val);
+                    eprintln!(
+                        "[FIX-SAVE] cyc={} saved $F3={:02X} (F2[1]) before DF93 clears it",
+                        self.cycle_count, f3_val
+                    );
+                }
+                if let Some(saved_f3) = self.fix_f3_restore {
+                    let ch = sa as usize;
+                    let old = if ch < 16 { self.bus.ram[0xF2 + ch] } else { self.bus.ram[0xF3] };
+                    if Self::restore_saved_f3(&mut self.bus.ram, Some(saved_f3), ch) {
+                        eprintln!(
+                            "[FIX-RESTORE-DF93] cyc={} $F3: {:02X} -> {:02X} during DF93 OPEN",
+                            self.cycle_count, old, saved_f3
+                        );
+                    }
+                }
+            }
+            self.post_df93_trace = 300;
+            self.df93_exit_prev_pc = 0xFFFF;
+            self.second_open_hits += 1;
+        }
+
         // POST-DF93: follow command-processor code path for 60 unique PCs after
         // each DF93 invocation.  Shows whether the drive enters TALK send mode
         // ($E9xx) or falls through back to the idle loop.
@@ -475,6 +580,25 @@ impl Drive1541 {
                 self.cycle_count, r[0x26C], r[0x7C], r[0x6F], r[0x70]
             );
             self.ec98_hits += 1;
+        }
+
+        // FIX: restore $F3 (F2[channel 1]) at E85B entry so E8D7 finds data ready (bit7=1).
+        // DF93 clears $F3 when processing OPEN+SA=1+fname="" (fast-loader activation), but the
+        // drive had already pre-loaded the second game file into buffer 1 ($F3=88). Restoring
+        // $F3 here lets the fast-loader ATN handler send the data the game expects.
+        // Keep the saved value around across repeated E85B entries; fast-loaders can revisit
+        // this path more than once while the second file is still buffered.
+        if pc == 0xE85B {
+            if let Some(saved_f3) = self.fix_f3_restore {
+                let ch = self.bus.ram[0x82] as usize;
+                let old = if ch < 16 { self.bus.ram[0xF2 + ch] } else { self.bus.ram[0xF3] };
+                if Self::restore_saved_f3(&mut self.bus.ram, Some(saved_f3), ch) {
+                    eprintln!(
+                        "[FIX-RESTORE] cyc={} $F3: {:02X} -> {:02X} at E85B",
+                        self.cycle_count, old, saved_f3
+                    );
+                }
+            }
         }
 
         // E85B-ENTRY: fast-loader ATN handler entry — dump $77/$78 (TALK/LISTEN
@@ -498,7 +622,7 @@ impl Drive1541 {
                     b.drive_clk as u8, b.drive_data as u8, b.drive_atna as u8,
                 );
             }
-            self.post_e85b_trace = 80;
+            self.post_e85b_trace = 200;
             self.e85b_exit_prev_pc = 0xFFFF;
             self.e85b_hits += 1;
         }
@@ -517,9 +641,21 @@ impl Drive1541 {
         // $F2[$82] (channel data-ready flag). When $7A=1 and $F2 bit7=0, the drive skips
         // the bit-send routine and returns to idle — that is the root cause of the deadlock.
         if self.e8d7_hits < 6 && self.e85b_hits > 0 && pc == 0xE8D7 {
+            let ch = self.bus.ram[0x82] as usize;
+            let f2 = if ch < 16 { self.bus.ram[0xF2 + ch] } else { 0xFF };
+            let ready = (f2 & 0x80) != 0;
+            if let Some(saved_f3) = self.fix_f3_restore {
+                if !ready {
+                    let old = if ch < 16 { self.bus.ram[0xF2 + ch] } else { self.bus.ram[0xF3] };
+                    if Self::restore_saved_f3(&mut self.bus.ram, Some(saved_f3), ch) {
+                        eprintln!(
+                            "[FIX-RESTORE-E8D7] cyc={} $F3: {:02X} -> {:02X} at E8D7 ready={} ch={}",
+                            self.cycle_count, old, saved_f3, ready as u8, ch
+                        );
+                    }
+                }
+            }
             let r = &self.bus.ram;
-            let ch = r[0x82] as usize;
-            let f2 = if ch < 16 { r[0xF2 + ch] } else { 0xFF };
             if let Some(b) = self.bus.via1.iec_opt() {
                 let b = b.borrow();
                 eprintln!(
@@ -540,10 +676,21 @@ impl Drive1541 {
         // disk read completes), a *new* TALK+SA would be needed to trigger sending.
         // Gate lowered to 77M to capture 79M ATN events.
         if self.e909_hits < 40 && self.cycle_count > 77_000_000 && pc == 0xE909 {
-            let r = &self.bus.ram;
-            let ch = r[0x82] as usize;
-            let f2 = if ch < 16 { r[0xF2 + ch] } else { 0xFF };
+            let ch = self.bus.ram[0x82] as usize;
+            let f2 = if ch < 16 { self.bus.ram[0xF2 + ch] } else { 0xFF };
             let ready = (f2 & 0x80) != 0;
+            if let Some(saved_f3) = self.fix_f3_restore {
+                if !ready {
+                    let old = if ch < 16 { self.bus.ram[0xF2 + ch] } else { self.bus.ram[0xF3] };
+                    if Self::restore_saved_f3(&mut self.bus.ram, Some(saved_f3), ch) {
+                        eprintln!(
+                            "[FIX-RESTORE-E909] cyc={} $F3: {:02X} -> {:02X} at E909 ready={} ch={}",
+                            self.cycle_count, old, saved_f3, ready as u8, ch
+                        );
+                    }
+                }
+            }
+            let r = &self.bus.ram;
             if let Some(b) = self.bus.via1.iec_opt() {
                 let b = b.borrow();
                 eprintln!(
@@ -784,20 +931,52 @@ impl Drive1541 {
 
         // ATN-RISE: log each c64_atn false→true edge after 88M (just after first file done).
         // Shows every new ATN command session the C64 initiates for the second file.
+        // Dumps command buffer snapshot so we can see what the C64 is sending.
         if self.atn_rise_hits < 10 && self.cycle_count > 88_000_000 {
             if let Some(b) = self.bus.via1.iec_opt() {
                 let atn = b.borrow().atn_low();
                 if atn && !self.prev_atn_low {
+                    let r = &self.bus.ram;
+                    let cmd: Vec<String> = (0..16usize)
+                        .map(|i| format!("{:02X}", r[0x200 + i]))
+                        .collect();
+                    let slots: Vec<String> = (0..8usize)
+                        .map(|i| format!("{:02X}", r[0x22B + i]))
+                        .collect();
                     eprintln!(
-                        "[ATN-RISE] cyc={} drive_pc=${:04X} $022C={:02X} $F3={:02X} \
-                         $82={:02X} $7C={:02X}",
+                        "[ATN-RISE #{}] cyc={} drive_pc=${:04X} $022C={:02X} $F3={:02X} \
+                         $82={:02X} $7C={:02X}\n\
+                         cmd[0..16]: {}  slots[0..8]: {}",
+                        self.atn_rise_hits + 1,
                         self.cycle_count, pc,
-                        self.bus.ram[0x22C], self.bus.ram[0xF3],
-                        self.bus.ram[0x82], self.bus.ram[0x7C],
+                        r[0x22C], r[0xF3], r[0x82], r[0x7C],
+                        cmd.join(" "), slots.join(" "),
                     );
                     self.atn_rise_hits += 1;
                 }
                 self.prev_atn_low = atn;
+            }
+        }
+
+        // JOB-WATCH: monitor drive RAM $00-$05 (1541 job queue) after 90M cycles.
+        // Each byte encodes a pending disk operation: bit7=1 = job active, bit6-0 = command.
+        // If these bytes never change after the SECOND-OPEN (drive_cyc~93M), the ROM
+        // never scheduled a disk read for the second file — confirming the "no auto-load" bug.
+        if self.job_watch_hits < 60 && self.cycle_count > 90_000_000 {
+            for i in 0..6usize {
+                let cur = self.bus.ram[i];
+                if cur != self.prev_job_table[i] {
+                    eprintln!(
+                        "[JOB-WATCH] cyc={} job[{}]: {:02X}->{:02X} drive_pc=${:04X} \
+                         $7C={:02X} $022C={:02X} $F3={:02X}",
+                        self.cycle_count, i,
+                        self.prev_job_table[i], cur,
+                        pc, self.bus.ram[0x7C], self.bus.ram[0x22C], self.bus.ram[0xF3],
+                    );
+                    self.prev_job_table[i] = cur;
+                    self.job_watch_hits += 1;
+                    if self.job_watch_hits >= 60 { break; }
+                }
             }
         }
 
@@ -861,4 +1040,21 @@ impl Drive1541 {
     }
 
     pub fn pc(&self) -> u16 { self.cpu.get_program_counter() }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Drive1541;
+
+    #[test]
+    fn restore_saved_f3_keeps_the_preloaded_buffer_ready() {
+        let mut ram = [0u8; 0x10000];
+        ram[0xF3] = 0x00;
+
+        assert!(Drive1541::restore_saved_f3(&mut ram, Some(0x88), 1));
+        assert_eq!(ram[0xF3], 0x88);
+
+        assert!(!Drive1541::restore_saved_f3(&mut ram, Some(0x88), 1));
+        assert_eq!(ram[0xF3], 0x88);
+    }
 }

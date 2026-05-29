@@ -169,6 +169,17 @@ pub struct C64 {
     // force $FFFE/$FFFF=$FE66 in RAM to test whether wrong BRK vector is the
     // sole cause of the fast-loader hang (fires once at cycle 115_500_000).
     brk_patch_done: bool,
+    // IECIN-WATCH: log first N entries into KERNAL IECIN ($EE56) after 89M cycles.
+    // Gate at 89M is past the first-file transfer (19.78M-87.5M) so only post-load
+    // IECIN calls are captured.  0 hits = C64 never reaches IECIN for file 2.
+    iecin_watch_hits: u32,
+    // IECIN-HANG: one-shot detection when C64 spins at KERNAL bit-poll ($E5C0–$E5E0)
+    // for more than 2M consecutive cycles.  Fires once and dumps:
+    //   • spin cycle count, C64 PC, drive PC, IEC bus state
+    //   • whether KERNAL ROM is on/off ($0001 bit1)
+    //   • the 16 bytes at $E5C0 as seen by the CPU (ROM if kernal_on=1, RAM if 0)
+    iecin_hang_cycles: u32,
+    iecin_hang_logged: bool,
 }
 
 impl C64 {
@@ -281,6 +292,9 @@ impl C64 {
             mem_4293_prev: 0xFF,  // sentinel: force a log on the first cycle >80M to confirm tracker runs
             mem_4293_hits: 0,
             brk_patch_done: false,
+            iecin_watch_hits: 0,
+            iecin_hang_cycles: 0,
+            iecin_hang_logged: false,
         };
 
         // If the drive is actually running, hand both ends a shared IEC bus
@@ -788,10 +802,10 @@ impl C64 {
                     }
                 }
 
-                // CPU-PORT: track CPU port $01 writes after cyc=80M.
+                // CPU-PORT: track CPU port $01 writes after cyc=75M.
                 // Bit 1 (HIRAM) controls KERNAL ROM — when clear, $E000-$FFFF is RAM.
-                // $FFFE/$FFFF (IRQ/BRK vector) and $FE66 (BRK handler) become RAM too.
-                if self.cycle_count > 80_000_000 && self.cpu_port_hits < 60 {
+                // Gate lowered to 75M so we catch banking changes right at load-end (~78M).
+                if self.cycle_count > 75_000_000 && self.cpu_port_hits < 60 {
                     let v = self.memory.borrow_mut().read_byte(0x0001);
                     if v != self.cpu_port_prev {
                         eprintln!(
@@ -1314,9 +1328,9 @@ impl C64 {
 
                 // ATN-SEQ: fire on every c64_atn 0→1 edge (ATN going LOW on bus).
                 // No cycle gate — captures all LISTEN/TALK sequences from boot.
-                // Limit 60 covers first-file loading (~5-15 sequences) plus any
-                // second-file OPEN the game might issue after the first file ends.
-                if self.atn_seq_hits < 60 {
+                // Limit 80: first-file KERNAL load uses ~5-15 ATN sequences; 80 is
+                // enough headroom to capture a post-load second-file OPEN sequence too.
+                if self.atn_seq_hits < 80 {
                     if let Some(ref iec) = self.iec_for_trace {
                         let b = iec.borrow();
                         let c64_atn_now = b.c64_atn;
@@ -1334,6 +1348,77 @@ impl C64 {
                         }
                         self.prev_c64_atn = c64_atn_now;
                     }
+                }
+
+                // IECIN-WATCH: log when C64 PC hits KERNAL IECIN entry ($EE56) after 89M.
+                // Gate at 89M skips ALL first-file transfer bytes (transfer runs 19.78M-87.5M).
+                // Limit 10 shows whether the game ever calls IECIN for the second file.
+                // kernal_on=0 means the CPU is executing custom RAM code at the IECIN address.
+                if self.cycle_count > 89_000_000 && self.iecin_watch_hits < 10
+                    && pc == 0xEE56
+                {
+                    let cpu_port = self.memory.borrow_mut().read_byte(0x0001);
+                    let kernal_on = (cpu_port >> 1) & 1;
+                    let drv_pc = self.drive.pc();
+                    if let Some(ref iec) = self.iec_for_trace {
+                        let b = iec.borrow();
+                        eprintln!(
+                            "[IECIN-WATCH] cyc={} c64=${:04X} drv=${:04X} $01=${:02X} \
+                             kernal_on={} iec={{atn:{} clk:{} dat:{}}} \
+                             c64={{clk:{} dat:{}}} drv={{clk:{} dat:{}}}",
+                            self.cycle_count, pc, drv_pc, cpu_port, kernal_on,
+                            b.atn_low() as u8, b.clk_low() as u8, b.data_low() as u8,
+                            b.c64_clk as u8, b.c64_data as u8,
+                            b.drive_clk as u8, b.drive_data as u8,
+                        );
+                    } else {
+                        eprintln!(
+                            "[IECIN-WATCH] cyc={} c64=${:04X} drv=${:04X} $01=${:02X} kernal_on={}",
+                            self.cycle_count, pc, drv_pc, cpu_port, kernal_on
+                        );
+                    }
+                    self.iecin_watch_hits += 1;
+                }
+
+                // IECIN-HANG: fire once when C64 PC stays in KERNAL bit-poll ($E5C0-$E5E0)
+                // for more than 2M consecutive cycles — the IEC deadlock signature.
+                // Dumps kernal_on, IEC bus state, and the bytes the CPU is actually executing
+                // (KERNAL ROM if kernal_on=1, or custom RAM code if kernal_on=0).
+                if matches!(pc, 0xE5C0..=0xE5E0) {
+                    self.iecin_hang_cycles += 1;
+                    if !self.iecin_hang_logged && self.iecin_hang_cycles > 2_000_000 {
+                        let cpu_port = self.memory.borrow_mut().read_byte(0x0001);
+                        let kernal_on = (cpu_port >> 1) & 1;
+                        let drv_pc = self.drive.pc();
+                        // read_byte respects banking: KERNAL off → returns RAM at this addr.
+                        let bytes: Vec<u8> = (0u16..32).map(|i|
+                            self.memory.borrow_mut().read_byte(0xE5C0u16.wrapping_add(i))
+                        ).collect();
+                        if let Some(ref iec) = self.iec_for_trace {
+                            let b = iec.borrow();
+                            eprintln!(
+                                "[IECIN-HANG] cyc={} c64=${:04X} drv=${:04X} $01=${:02X} \
+                                 kernal_on={} spin_cyc={} \
+                                 iec={{atn:{} clk:{} dat:{}}} drv={{clk:{} dat:{}}}",
+                                self.cycle_count, pc, drv_pc, cpu_port, kernal_on,
+                                self.iecin_hang_cycles,
+                                b.atn_low() as u8, b.clk_low() as u8, b.data_low() as u8,
+                                b.drive_clk as u8, b.drive_data as u8,
+                            );
+                        } else {
+                            eprintln!(
+                                "[IECIN-HANG] cyc={} c64=${:04X} drv=${:04X} spin_cyc={}",
+                                self.cycle_count, pc, drv_pc, self.iecin_hang_cycles
+                            );
+                        }
+                        eprint!("[IECIN-HANG] bytes@$E5C0 ({}):",
+                                if kernal_on == 1 { "KERNAL ROM" } else { "RAM—custom code!" });
+                        for b in &bytes { eprint!(" {:02X}", b); }
+                        eprintln!();
+                        self.iecin_hang_logged = true;
+                    }
+                } else if self.iecin_hang_cycles > 0 && !self.iecin_hang_logged {
+                    self.iecin_hang_cycles = 0;
                 }
 
                 // PRE-PAGE8-PC: trace unique PCs in $0800-$08FF after cyc=90M.
